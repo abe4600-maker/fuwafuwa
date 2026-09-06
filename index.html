@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ふわふわ神経衰弱</title>
+  <style>
+    :root {
+      --theme-bg: #fff5f8;
+      --theme-primary: #ff80ab;
+      --theme-card-back: #ff80ab;
+      --text-color: #4a4a4a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--theme-bg);
+      color: var(--text-color);
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      transition: background-color 0.5s ease;
+    }
+
+    /* 背景アニメーション */
+    .bg-bubble {
+      position: fixed;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      animation: float 8s infinite ease-in-out;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.05); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* タイトル */
+    h1 {
+      font-size: 26px;
+      color: #333;
+      text-shadow: 2px 2px 0 #fff;
+      margin-bottom: 15px;
+      text-align: center;
+      animation: fuwafuwa 3s ease-in-out infinite;
+    }
+
+    @keyframes fuwafuwa {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    /* カテゴリ選択メニュー */
+    .menu-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      border-radius: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      text-align: center;
+      border: 4px solid #fff;
+    }
+
+    .menu-title {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #444;
+      font-weight: bold;
+    }
+
+    .category-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-cat {
+      background: #fff;
+      border: 3px solid #ccc;
+      border-radius: 18px;
+      padding: 12px 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-cat.cat-fruit { border-color: #ff5252; color: #d32f2f; }
+    .btn-cat.cat-animal { border-color: #66bb6a; color: #2e7d32; }
+    .btn-cat.cat-vehicle { border-color: #42a5f5; color: #1565c0; }
+    .btn-cat.cat-sports { border-color: #ffee58; color: #f57f17; }
+    .btn-cat.cat-flower { border-color: #ff80ab; color: #c2185b; }
+
+    .btn-cat:hover, .btn-cat:active {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ゲーム画面 */
+    .game-area {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .game-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 0 5px;
+    }
+
+    .btn-back {
+      background: #fff;
+      border: 2px solid #bbb;
+      color: #666;
+      border-radius: 12px;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .score-board {
+      font-size: 16px;
+      font-weight: bold;
+      background: #fff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      color: #333;
+    }
+
+    /* 12枚のカードグリッド */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    /* カード基本デザイン */
+    .card {
+      aspect-ratio: 3 / 4;
+      position: relative;
+      cursor: pointer;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      animation: fuwafuwaCard 4s ease-in-out infinite alternate;
+    }
+
+    .card:nth-child(2n) { animation-delay: 0.3s; }
+    .card:nth-child(3n) { animation-delay: 0.6s; }
+    .card:nth-child(4n) { animation-delay: 0.9s; }
+
+    @keyframes fuwafuwaCard {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-5px); }
+    }
+
+    /* 裏面（初期状態） */
+    .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--theme-card-back);
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: opacity 0.3s ease;
+    }
+
+    /* 表面（絵柄） */
+    .card-front {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      z-index: 1;
+    }
+
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 2px;
+    }
+
+    .card-label {
+      font-size: 12px;
+      color: #444;
+      text-align: center;
+      line-height: 1.1;
+      font-weight: bold;
+    }
+
+    /* めくった時・揃った時：裏面を消して表面を表示 */
+    .card.flipped .card-back,
+    .card.matched .card-back {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* 揃ったペア（matched）：表向きのまま固定し、画面に残す */
+    .card.matched {
+      animation: none;
+      transform: translateY(0) scale(0.96);
+      opacity: 0.8;
+      cursor: default;
+    }
+
+    /* クリアモーダル */
+    .clear-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .clear-content {
+      background: #fff;
+      padding: 30px 20px;
+      border-radius: 28px;
+      text-align: center;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .clear-title {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .btn-retry {
+      margin-top: 15px;
+      background: var(--theme-primary);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      font-size: 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-bubble" style="width: 100px; height: 100px; top: 10%; left: 10%;"></div>
+  <div class="bg-bubble" style="width: 150px; height: 150px; bottom: 15%; right: 5%; animation-delay: -3s;"></div>
+  <div class="bg-bubble" style="width: 80px; height: 80px; top: 60%; left: 5%; animation-delay: -5s;"></div>
+
+  <div class="container">
+    <h1>✨ ふわふわ神経衰弱 ✨</h1>
+
+    <!-- カテゴリ選択画面 -->
+    <div id="menu" class="menu-card">
+      <div class="menu-title">あそぶ しゅるい を えらんでね！</div>
+      <div class="category-list">
+        <button class="btn-cat cat-fruit" onclick="startGame('fruit')">🍎 くだもの</button>
+        <button class="btn-cat cat-animal" onclick="startGame('animal')">🐶 どうぶつ</button>
+        <button class="btn-cat cat-vehicle" onclick="startGame('vehicle')">🚗 のりもの</button>
+        <button class="btn-cat cat-sports" onclick="startGame('sports')">⚽ スポーツ</button>
+        <button class="btn-cat cat-flower" onclick="startGame('flower')">🌸 はな</button>
+      </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game" class="game-area">
+      <div class="game-header">
+        <button class="btn-back" onclick="showMenu()">← もどる</button>
+        <div class="score-board">ペア: <span id="pair-count">0</span> / 6</div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+    </div>
+  </div>
+
+  <!-- クリアポップアップ -->
+  <div id="clear-modal" class="clear-modal">
+    <div class="clear-content">
+      <div class="clear-title">🎉 ぜんぶできたよ！</div>
+      <p style="font-weight: bold; color: #666;">すごいね！かんぺき！</p>
+      <button class="btn-retry" onclick="showMenu()">もういちど あそぶ</button>
+    </div>
+  </div>
+
+  <script>
+    const categories = {
+      fruit: {
+        bgColor: '#ffebee',
+        cardColor: 'linear-gradient(135deg, #ff5252, #ff1744)',
+        primaryColor: '#ff1744',
+        items: [
+          { name: 'りんご', icon: '🍎' },
+          { name: 'みかん', icon: '🍊' },
+          { name: 'ぶどう', icon: '🍇' },
+          { name: 'いちご', icon: '🍓' },
+          { name: 'バナナ', icon: '🍌' },
+          { name: 'すいか', icon: '🍉' }
+        ]
+      },
+      animal: {
+        bgColor: '#e8f5e9',
+        cardColor: 'linear-gradient(135deg, #66bb6a, #43a047)',
+        primaryColor: '#43a047',
+        items: [
+          { name: 'いぬ', icon: '🐶' },
+          { name: 'ねこ', icon: '🐱' },
+          { name: 'うさぎ', icon: '🐰' },
+          { name: 'くま', icon: '🐻' },
+          { name: 'ライオン', icon: '🦁' },
+          { name: 'パンダ', icon: '🐼' }
+        ]
+      },
+      vehicle: {
+        bgColor: '#e3f2fd',
+        cardColor: 'linear-gradient(135deg, #42a5f5, #1e88e5)',
+        primaryColor: '#1e88e5',
+        items: [
+          { name: 'くるま', icon: '🚗' },
+          { name: 'でんしゃ', icon: '🚃' },
+          { name: 'ひこうき', icon: '✈️' },
+          { name: 'ふね', icon: '🚢' },
+          { name: 'バス', icon: '🚌' },
+          { name: 'パトカー', icon: '🚓' }
+        ]
+      },
+      sports: {
+        bgColor: '#fffde7',
+        cardColor: 'linear-gradient(135deg, #ffee58, #fdd835)',
+        primaryColor: '#fbc02d',
+        items: [
+          { name: 'サッカー', icon: '⚽' },
+          { name: 'バスケ', icon: '🏀' },
+          { name: '野球', icon: '⚾' },
+          { name: 'テニス', icon: '🎾' },
+          { name: 'すいえい', icon: '🏊' },
+          { name: 'たいそう', icon: '🤸' }
+        ]
+      },
+      flower: {
+        bgColor: '#fce4ec',
+        cardColor: 'linear-gradient(135deg, #ff80ab, #f50057)',
+        primaryColor: '#f50057',
+        items: [
+          { name: 'ひまわり', icon: '🌻' },
+          { name: 'チューリップ', icon: '🌷' },
+          { name: 'バラ', icon: '🌹' },
+          { name: 'さくら', icon: '🌸' },
+          { name: 'ハイビスカス', icon: '🌺' },
+          { name: 'たんぽぽ', icon: '🌼' }
+        ]
+      }
+    };
+
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+    let matchedPairs = 0;
+
+    function startGame(catKey) {
+      const cat = categories[catKey];
+      const menu = document.getElementById('menu');
+      const game = document.getElementById('game');
+      const grid = document.getElementById('grid');
+
+      document.documentElement.style.setProperty('--theme-bg', cat.bgColor);
+      document.documentElement.style.setProperty('--theme-card-back', cat.cardColor);
+      document.documentElement.style.setProperty('--theme-primary', cat.primaryColor);
+
+      menu.style.display = 'none';
+      game.style.display = 'flex';
+      grid.innerHTML = '';
+
+      matchedPairs = 0;
+      document.getElementById('pair-count').textContent = matchedPairs;
+
+      const cardDataList = [...cat.items, ...cat.items];
+      cardDataList.sort(() => Math.random() - 0.5);
+
+      cardDataList.forEach((data) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.name = data.name;
+
+        card.innerHTML = `
+          <div class="card-back">☁️</div>
+          <div class="card-front">
+            <div class="card-icon">${data.icon}</div>
+            <div class="card-label">${data.name}</div>
+          </div>
+        `;
+
+        card.addEventListener('click', flipCard);
+        grid.appendChild(card);
+      });
+    }
+
+    function flipCard() {
+      if (lockBoard) return;
+      if (this === firstCard) return;
+      if (this.classList.contains('matched')) return;
+
+      this.classList.add('flipped');
+
+      if (!firstCard) {
+        firstCard = this;
+        return;
+      }
+
+      secondCard = this;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      const isMatch = firstCard.dataset.name === secondCard.dataset.name;
+
+      if (isMatch) {
+        disableCards();
+      } else {
+        unflipCards();
+      }
+    }
+
+    function disableCards() {
+      // イベント解除と matched クラス付与（表向きのまま画面に残す）
+      firstCard.removeEventListener('click', flipCard);
+      secondCard.removeEventListener('click', flipCard);
+
+      firstCard.classList.add('matched');
+      secondCard.classList.add('matched');
+
+      matchedPairs++;
+      document.getElementById('pair-count').textContent = matchedPairs;
+
+      resetBoard();
+
+      if (matchedPairs === 6) {
+        setTimeout(() => {
+          document.getElementById('clear-modal').style.display = 'flex';
+        }, 600);
+      }
+    }
+
+    function unflipCards() {
+      lockBoard = true;
+      setTimeout(() => {
+        firstCard.classList.remove('flipped');
+        secondCard.classList.remove('flipped');
+        resetBoard();
+      }, 900);
+    }
+
+    function resetBoard() {
+      [firstCard, secondCard] = [null, null];
+      [lockBoard] = [false];
+    }
+
+    function showMenu() {
+      document.getElementById('clear-modal').style.display = 'none';
+      document.getElementById('game').style.display = 'none';
+      document.getElementById('menu').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
